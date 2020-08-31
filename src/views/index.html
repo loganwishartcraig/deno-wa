@@ -1,0 +1,115 @@
+<html lang="en-US">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <style>
+        #log {
+            max-width: 100%;
+            word-break: break-word;
+            line-break: anywhere;
+            white-space: break-spaces;
+        }
+    </style>
+</head>
+
+
+<body>
+
+    Hello world!
+
+    <form id="reg-form" action="/api/challenge" method="POST">
+        <input name="name" type="text" required value="test-name" />
+        <button id="register" type="submit">Register</button>
+    </form>
+
+    <pre id="log"></pre>
+
+    <script>
+
+        const logNode = document.getElementById('log')
+        const log = (...messages) => {
+            messages.forEach(m => {
+                logNode.innerText += `\n[${new Date().toUTCString()}] - ${m}`;
+            });
+        }
+
+        const handleFormSubmit = async evt => {
+
+            evt.preventDefault();
+
+            try {
+                const formData = new FormData(document.getElementById('reg-form'));
+
+                log('Got FormData')
+                log('Getting challenge...');
+                const config = await getChallenge(formData);
+                console.log('config', config);
+                log('Got challenge', JSON.stringify(config));
+
+                log('Getting credentials...');
+                const creds = await createCreds(config);
+                console.log('creds', creds);
+                // log('Got credentials', creds ? JSON.stringify(creds) : creds);
+                log('Got credentials');
+
+                // /** @type {PublicKeyCredential} */
+                // const creds = await createCreds({
+                //     id: Uint8Array.from("abcdefg", c => c.charCodeAt(0)),
+                //     name: formData.get('name'),
+                //     displayName: formData.get('display-name')
+                // }, challenge);
+
+                // const res = creds.getClientExtensionResults();
+                // const json = res.clientDataJSON();
+                // console.log('creds', creds);
+
+            } catch (e) {
+                console.error('error', e)
+                log(`ERROR: ${e.message}`);
+            }
+
+
+        }
+
+        document.getElementById('reg-form').addEventListener('submit', handleFormSubmit);
+
+        const getChallenge = async formData => {
+
+            const res = await await fetch('/api/challenge/request', {
+                method: 'post',
+                body: formData,
+            });
+
+            return res.json();
+
+        }
+
+
+        const createCreds = config => {
+
+            if ('credentials' in navigator) {
+                const arg = {
+                    publicKey: {
+                        ...config,
+                        user: {
+                            ...config.user,
+                            id: Uint8Array.from(config.user.name, c => c.charCodeAt(0)),
+                        },
+                        timeout: 60000,
+                        challenge: Uint8Array.from(config.challenge, c => c.charCodeAt(0)),
+                    }
+                };
+                log('Creds config', arg);
+                return navigator.credentials.create(arg);
+            } else {
+                throw new Error('Credentials not available.')
+            }
+
+        }
+
+
+    </script>
+</body>
+
+</html>

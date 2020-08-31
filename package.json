@@ -1,0 +1,13 @@
+{
+  "name": "deno-wa",
+  "version": "0.1.0",
+  "description": "A toy example to test Deno and native WebAuthentication features",
+  "main": "src/app.ts",
+  "repository": "https://github.com/loganwishartcraig/native-mobile-auth-server",
+  "author": "Logan Wishart-Craig",
+  "license": "MIT",
+  "scripts": {
+    "start": "denon run --allow-net --allow-read --unstable src/www/server.ts",
+    "dev": "yarn start"
+  }
+}
